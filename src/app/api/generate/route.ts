@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { generateStudySession } from "@/features/study-session/api/generate.server";
+import { generateStudySession } from "@/features/study-session/server/generate.server";
 import { GenerateRequestSchema } from "@/features/study-session/api/schema";
-import { chaosResponse, resolveChaosMode } from "@/features/study-session/api/chaos";
+import { chaosResponse, resolveChaosMode } from "@/features/study-session/dev/chaos";
 import type { GenerateResponse } from "@/features/study-session/types";
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { ChaosMode } from "../api/chaos";
+import type { ChaosMode } from "../dev/chaos";
 import type { Difficulty } from "../types";
 
 /**

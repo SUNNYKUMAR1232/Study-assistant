@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkHealth } from "@/features/study-session/api/health.server";
+import { checkHealth } from "@/features/study-session/server/health.server";
 import type { HealthResponse } from "@/features/study-session/types";
 
 /**

@@ -1,4 +1,4 @@
-import { normalizeStudySession } from "./normalize";
+import { normalizeStudySession } from "../normalize";
 import type { GenerateResponse } from "../types";
 
 /**

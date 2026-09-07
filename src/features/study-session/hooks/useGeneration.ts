@@ -5,7 +5,7 @@ import { fetchWithTimeout } from "@/shared/lib/fetchWithTimeout";
 import { hashText } from "@/shared/lib/hashText";
 import { readJSON, writeJSON } from "@/shared/lib/storage";
 import { GenerateResponseSchema } from "../api/schema";
-import { CHAOS_HEADER, type ChaosMode } from "../api/chaos";
+import { CHAOS_HEADER, type ChaosMode } from "../dev/chaos";
 import type { ApiError, GenerateRequestInput, GenerationMeta, StudySession } from "../types";
 
 /**

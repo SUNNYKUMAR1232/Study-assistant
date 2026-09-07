@@ -1,5 +1,5 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { StudySessionSchema } from "./schema";
+import { StudySessionSchema } from "../api/schema";
 import type { Difficulty } from "../types";
 
 /**

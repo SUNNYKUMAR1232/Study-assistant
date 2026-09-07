@@ -1,5 +1,5 @@
-import { FlashcardSchema, QuizQuestionSchema, StudySessionSchema } from "./schema";
-import type { Flashcard, QuizQuestion, StudySession } from "../types";
+import { FlashcardSchema, QuizQuestionSchema, StudySessionSchema } from "./api/schema";
+import type { Flashcard, QuizQuestion, StudySession } from "./types";
 
 /**
  * Everything in this file exists because the model is not trustworthy.

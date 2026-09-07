@@ -2,8 +2,8 @@ import "server-only";
 
 import Groq from "groq-sdk";
 import { MissingKeyError, getGroqClient, getModelName } from "./groqClient.server";
-import { normalizeStudySession } from "./normalize";
 import { SAVE_SESSION_TOOL, buildSystemPrompt, buildUserPrompt } from "./prompt";
+import { normalizeStudySession } from "../normalize";
 import type { ApiError, GenerateRequest, GenerationMeta, StudySession } from "../types";
 
 /**

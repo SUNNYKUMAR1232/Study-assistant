@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/Button";
 import { Card, CardBody } from "@/shared/ui/Card";
 import { cn } from "@/shared/lib/cn";
 import { DIFFICULTIES, MAX_INPUT_CHARS, MIN_INPUT_CHARS } from "../api/schema";
-import { CHAOS_MODES, type ChaosMode } from "../api/chaos";
+import { CHAOS_MODES, type ChaosMode } from "../dev/chaos";
 import type { ComposerDraft } from "../hooks/useComposerDraft";
 import type { Difficulty } from "../types";
 
