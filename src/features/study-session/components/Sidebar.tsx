@@ -24,7 +24,9 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <div className="flex h-full flex-col">
-      <div className="p-3">
+      {/* Extra headroom on desktop only: below `lg` the drawer's own header
+          sits above this, so it already has something to breathe against. */}
+      <div className="p-3 lg:pt-6">
         <button
           type="button"
           onClick={onNewSession}
