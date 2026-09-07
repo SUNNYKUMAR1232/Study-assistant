@@ -21,14 +21,16 @@ export function Flashcard({ card, isFlipped, onFlip }: FlashcardProps) {
       aria-pressed={isFlipped}
       aria-label={isFlipped ? "Showing answer. Activate to show question." : "Showing question. Activate to reveal answer."}
       className={cn(
-        "group relative block min-h-56 w-full [perspective:1200px] sm:min-h-64",
+        "group relative mx-auto block min-h-56 w-full [perspective:1200px] sm:min-h-64",
+        // Capped so it stays a card rather than a letterbox strip on wide screens.
+        "max-w-2xl lg:min-h-72",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 rounded-xl",
         "dark:focus-visible:ring-offset-slate-950",
       )}
     >
       <div
         className={cn(
-          "relative h-full min-h-56 w-full transition-transform duration-500 [transform-style:preserve-3d] sm:min-h-64",
+          "relative h-full min-h-56 w-full transition-transform duration-500 [transform-style:preserve-3d] sm:min-h-64 lg:min-h-72",
           "motion-reduce:transition-none",
           isFlipped && "[transform:rotateY(180deg)]",
         )}
