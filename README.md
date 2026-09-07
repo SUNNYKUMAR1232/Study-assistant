@@ -121,43 +121,6 @@ scripts/
   deploy.mjs                        ← one-command deploy: verify → build → ship → smoke-test
 ```
 
-### Why this structure
-
-**Feature-based, not type-based.** Grouping by `components/`, `hooks/`, `utils/` scatters one feature across three folders and hides its boundary. Grouping by feature means everything a study session needs sits in one directory, and the import graph shows you the seams.
-
-**There is exactly one feature, and that's deliberate.** No empty `features/auth/` or `features/settings/` to look architectural — empty folders are cargo-culting, and they invite the obvious question. The boundary is real, not decorative: adding a second mode, say cloze deletion, would be `features/cloze` and would not touch this folder. That's the test a feature boundary has to pass.
-
-**`schema.ts` is the single source of truth, and it is the strongest thing in the codebase.** One file defines what the model is asked to produce, what the server accepts, and what the UI can rely on:
-
-- the route handler validates the request with it
-- it becomes the JSON Schema in the tool definition sent to Groq
-- `normalize.ts` validates the response against it
-- `types.ts` infers every TypeScript type from it — nothing is hand-written twice
-- the **client** re-validates the server's response with it, so a deployed version that drifts from the contract is treated as a failure rather than rendered blind
-
-Change a field once and every layer either follows or fails to compile.
-
-**Three layers, and they don't leak:**
-
-| Layer | Files | Knows about |
-|---|---|---|
-| Transport | `app/api/*/route.ts` | HTTP parsing, validation, delegation, and response status codes. |
-| Server | `server/` | Groq, prompts, provider errors, and the generation/health use cases. |
-| Contract | `api/schema.ts`, `normalize.ts` | The shape, and the fact that the model is unreliable. Nothing else knows. |
-| Presentation | `hooks/`, `components/` | Interaction state and pixels. **No component calls `fetch`, ever.** |
-
-The test that proves the separation: *could you swap Groq for a hardcoded fixture by changing one file?* Yes — the provider call in `server/generate.server.ts`. That seam is also why `dev/chaos.ts` was cheap to build.
-
-### State management — and what I deliberately left out
-
-`useState` for local interaction, `useReducer` for the one real state machine, props downward. **No React Query, no Zustand, no Context.** That is a decision, not an omission:
-
-- **React Query** is built for caching, refetching, and invalidating server data keyed by URL. This app has one non-idempotent `POST` that must never be silently refetched. I'd be fighting the library, and its `AbortController` handling would bury the stale-response guard — which is the single most important behaviour here. Writing that guard by hand (`requestIdRef`) is the point, not a workaround.
-- **Zustand** solves prop-drilling across distant trees. This tree is three levels deep with one data owner. Adding a store would be resume-driven, not problem-driven.
-- **Context** would be preemptive. It goes in when prop-drilling actually starts to hurt.
-
-The caching that this app genuinely needs is a `localStorage` entry keyed by a hash of the input — identical text is never re-billed, and reloading is instant. That's twenty lines, not a dependency.
-
 ### Performance — two things, both justified
 
 Code-splitting a single-route app is theatre, so there are only two real optimisations:
