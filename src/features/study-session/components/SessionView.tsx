@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { Button } from "@/shared/ui/Button";
 import { Card, CardBody } from "@/shared/ui/Card";
 import { DegradedNotice, Skeleton } from "@/shared/ui/states";
 import { cn } from "@/shared/lib/cn";
@@ -22,42 +21,25 @@ type Tab = "flashcards" | "quiz";
 export interface SessionViewProps {
   session: StudySession;
   meta: GenerationMeta | null;
-  fromCache: boolean;
-  isSaved: boolean;
-  onSave: () => void;
 }
 
-export function SessionView({ session, meta, fromCache, isSaved, onSave }: SessionViewProps) {
+export function SessionView({ session, meta }: SessionViewProps) {
   const [tab, setTab] = useState<Tab>("flashcards");
 
   return (
     <section className="space-y-4" aria-label="Generated study session">
       <Card>
         <CardBody>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="text-balance text-xl font-semibold text-slate-900 dark:text-slate-100">
-                {session.title}
-              </h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                {session.summary}
-              </p>
-            </div>
-            <Button size="sm" variant={isSaved ? "secondary" : "ghost"} onClick={onSave} disabled={isSaved}>
-              {isSaved ? "Saved" : "Save session"}
-            </Button>
-          </div>
-
-          <dl className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-500">
-            <Stat label="Cards" value={String(session.flashcards.length)} />
-            <Stat label="Questions" value={String(session.quiz.length)} />
-            {meta ? <Stat label="Model" value={meta.model} /> : null}
-            {meta && !fromCache ? <Stat label="Took" value={`${(meta.elapsedMs / 1000).toFixed(1)}s`} /> : null}
-            {fromCache ? <Stat label="Source" value="cached" /> : null}
-          </dl>
+          <h2 className="text-balance text-xl font-semibold text-slate-900 dark:text-slate-100">
+            {session.title}
+          </h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+            {session.summary}
+          </p>
         </CardBody>
       </Card>
 
+      {/* A damaged-but-usable result still has to say so. */}
       {meta?.degraded ? <DegradedNotice warnings={meta.warnings} /> : null}
 
       <div role="tablist" aria-label="Study mode" className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
@@ -69,8 +51,8 @@ export function SessionView({ session, meta, fromCache, isSaved, onSave }: Sessi
         </TabButton>
       </div>
 
-      {/* Both panels stay mounted so deck position and quiz answers survive a
-          tab switch; only the hidden one is removed from the a11y tree. */}
+      {/* The flashcard panel stays mounted so deck position survives a tab
+          switch; the quiz mounts on demand because it is a lazy chunk. */}
       <div role="tabpanel" id="panel-flashcards" hidden={tab !== "flashcards"}>
         <FlashcardDeck cards={session.flashcards} isActive={tab === "flashcards"} />
       </div>
@@ -110,14 +92,5 @@ function TabButton({
     >
       {children}
     </button>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-1">
-      <dt className="font-medium">{label}:</dt>
-      <dd className="tabular-nums">{value}</dd>
-    </div>
   );
 }
