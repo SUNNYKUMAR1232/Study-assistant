@@ -1,6 +1,7 @@
 import "server-only";
 
 import Groq from "groq-sdk";
+import { MissingKeyError, getGroqClient, getModelName } from "./groqClient.server";
 import { normalizeStudySession } from "./normalize";
 import { SAVE_SESSION_TOOL, buildSystemPrompt, buildUserPrompt } from "./prompt";
 import type { ApiError, GenerateRequest, GenerationMeta, StudySession } from "../types";
@@ -11,41 +12,22 @@ import type { ApiError, GenerateRequest, GenerationMeta, StudySession } from "..
  * provider means editing this file and nothing else.
  */
 
-const DEFAULT_MODEL = "llama-3.3-70b-versatile";
 const UPSTREAM_TIMEOUT_MS = 40_000;
 
 export type GenerateOutcome =
   | { ok: true; data: StudySession; meta: GenerationMeta }
   | { ok: false; error: ApiError };
 
-let client: Groq | null = null;
-
-function getClient(): Groq {
-  if (!client) {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) throw new MissingKeyError();
-    client = new Groq({ apiKey, timeout: UPSTREAM_TIMEOUT_MS, maxRetries: 1 });
-  }
-  return client;
-}
-
-class MissingKeyError extends Error {
-  constructor() {
-    super("GROQ_API_KEY is not set on the server.");
-    this.name = "MissingKeyError";
-  }
-}
-
 export async function generateStudySession(
   request: GenerateRequest,
   signal?: AbortSignal,
 ): Promise<GenerateOutcome> {
-  const model = process.env.GROQ_MODEL || DEFAULT_MODEL;
+  const model = getModelName();
   const startedAt = Date.now();
 
   let completion;
   try {
-    completion = await getClient().chat.completions.create(
+    completion = await getGroqClient(UPSTREAM_TIMEOUT_MS).chat.completions.create(
       {
         model,
         temperature: 0.4,
@@ -94,8 +76,22 @@ export async function generateStudySession(
   };
 }
 
-/** Map every upstream failure onto a code the client already knows how to render. */
+/**
+ * Map every upstream failure onto a code the client already knows how to render.
+ *
+ * The user-facing message is deliberately vague; the detail goes to the server
+ * log, where it helps the operator without leaking provider internals.
+ */
 function toApiError(error: unknown): ApiError {
+  if (error instanceof Groq.APIError) {
+    console.error("[groq] %s %s — %s", error.status, error.name, JSON.stringify(error.error ?? error.message));
+  } else if (!(error instanceof MissingKeyError)) {
+    console.error("[groq] unexpected failure:", error);
+  }
+  return classify(error);
+}
+
+function classify(error: unknown): ApiError {
   if (error instanceof MissingKeyError) {
     return { code: "server_error", message: "The server is missing its Groq API key." };
   }
