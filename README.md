@@ -67,7 +67,7 @@ This app makes them exist, in about five seconds, from whatever text you already
 | A render bug we didn't anticipate | `app/error.tsx` boundary — a recovery button, never a blank page |
 | Missing key, dead network, revoked key | Surfaced **before** you type, by the live indicator in the header |
 
-**You don't have to take that table on faith.** In development, a **Chaos mode** dropdown appears under the form. Pick a failure — `malformed-json`, `wrong-shape`, `partial`, `slow`, `rate-limit` — and the server injects it. The broken payloads run through the *real* normaliser, so what you see is genuine recovery behaviour, not a mocked screen. It is disabled entirely in production.
+**You don't have to take that table on faith.** In development, a **Chaos mode** dropdown appears under the form. Pick a failure — `malformed-json`, `wrong-shape`, `empty`, `partial`, `slow`, `rate-limit`, `upstream-error` — and the server injects it. The broken payloads run through the *real* normaliser, so what you see is genuine recovery behaviour, not a mocked screen. No chaos mode ever reaches Groq, so experimenting costs nothing, and the whole thing is disabled in production builds.
 
 ---
 

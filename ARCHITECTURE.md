@@ -137,7 +137,9 @@ const parsed = GenerateResponseSchema.safeParse(json);
 **Why it exists at all.**
 > Every project claims to handle model failure. Almost none can demonstrate it on demand, because you can't make a model misbehave on cue. This makes the claim falsifiable in one click — and it's how I actually developed the normaliser.
 
-**Security:** `resolveChaosMode` returns `null` immediately when `NODE_ENV === "production"`. It cannot be triggered by a caller in a deployed build. Worth stating before they ask.
+**Security:** `resolveChaosMode` returns `null` immediately when `NODE_ENV === "production"`. It cannot be triggered by a caller in a deployed build. **I verified this against a real production build** — sending `x-chaos-mode: rate-limit` to `next start` is ignored and produces a genuine generation. Worth stating before they ask.
+
+**A bug I found auditing this, worth telling as a story.** `slow` originally slept 60s and then returned `null`, letting the request *fall through to the real Groq call*. Two things were wrong: the sleep ignored `request.signal`, so the handler kept running for the full minute after the client had disconnected; and picking "slow" in a dev dropdown could spend real API quota. It only appeared harmless because the client aborts at 45s, which happened to abort the provider call too — a `curl` with no timeout would have been billed. Now the sleep is abort-aware and `chaosResponse` always returns a response, so **no chaos mode can ever reach the provider**. The lesson: a fault injector that can fall through to the real dependency is not an injector, it's a delay.
 
 ---
 
