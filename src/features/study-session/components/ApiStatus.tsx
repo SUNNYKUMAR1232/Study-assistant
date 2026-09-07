@@ -52,7 +52,7 @@ export function ApiStatus() {
   const isProblem = health.state === "no-key" || health.state === "unreachable";
 
   return (
-    <div className="flex flex-col items-start gap-1 sm:items-end">
+    <div className="flex flex-col items-start gap-1">
       <button
         type="button"
         onClick={health.refresh}
@@ -94,7 +94,7 @@ export function ApiStatus() {
 
       {/* Only a real problem earns extra vertical space. */}
       {isProblem ? (
-        <p className="max-w-xs text-xs text-slate-500 sm:text-right dark:text-slate-400">
+        <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
           {health.message}
         </p>
       ) : null}
