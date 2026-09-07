@@ -16,14 +16,14 @@ export const DifficultySchema = z.enum(DIFFICULTIES);
 /* Request                                                             */
 /* ------------------------------------------------------------------ */
 
-export const MIN_INPUT_CHARS = 40;
 export const MAX_INPUT_CHARS = 12_000;
 
 export const GenerateRequestSchema = z.object({
   text: z
     .string()
     .trim()
-    .min(MIN_INPUT_CHARS, `Give me at least ${MIN_INPUT_CHARS} characters to work with.`)
+    // No minimum length: short input is allowed, it just yields less.
+    .min(1, "Paste some study material first.")
     .max(MAX_INPUT_CHARS, `That is longer than ${MAX_INPUT_CHARS} characters. Trim it down.`),
   flashcardCount: z.number().int().min(3).max(20).default(8),
   quizCount: z.number().int().min(3).max(15).default(5),

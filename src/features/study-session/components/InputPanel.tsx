@@ -4,7 +4,7 @@ import { useId } from "react";
 import { Button } from "@/shared/ui/Button";
 import { Card, CardBody } from "@/shared/ui/Card";
 import { cn } from "@/shared/lib/cn";
-import { DIFFICULTIES, MAX_INPUT_CHARS, MIN_INPUT_CHARS } from "../api/schema";
+import { DIFFICULTIES, MAX_INPUT_CHARS } from "../api/schema";
 import { CHAOS_MODES, type ChaosMode } from "../dev/chaos";
 import type { ComposerDraft } from "../hooks/useComposerDraft";
 import type { Difficulty } from "../types";
@@ -35,9 +35,8 @@ export function InputPanel({
   const textareaId = useId();
 
   const trimmed = draft.text.trim();
-  const tooShort = trimmed.length > 0 && trimmed.length < MIN_INPUT_CHARS;
   const tooLong = trimmed.length > MAX_INPUT_CHARS;
-  const canSubmit = trimmed.length >= MIN_INPUT_CHARS && !tooLong;
+  const canSubmit = trimmed.length > 0 && !tooLong;
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -73,12 +72,12 @@ export function InputPanel({
               rows={8}
               placeholder="Paste notes, a textbook passage, an article…"
               aria-describedby={`${textareaId}-help`}
-              aria-invalid={tooShort || tooLong || undefined}
+              aria-invalid={tooLong || undefined}
               className={cn(
                 "mt-2 w-full resize-y rounded-lg border bg-white px-3 py-2 text-base leading-relaxed",
                 "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500",
                 "dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600",
-                tooShort || tooLong
+                tooLong
                   ? "border-rose-400 dark:border-rose-700"
                   : "border-slate-300 dark:border-slate-700",
               )}
@@ -93,9 +92,7 @@ export function InputPanel({
             >
               {tooLong
                 ? `${trimmed.length.toLocaleString()} / ${MAX_INPUT_CHARS.toLocaleString()} characters — too long.`
-                : tooShort
-                  ? `${MIN_INPUT_CHARS - trimmed.length} more characters needed.`
-                  : `${trimmed.length.toLocaleString()} / ${MAX_INPUT_CHARS.toLocaleString()} characters`}
+                : `${trimmed.length.toLocaleString()} / ${MAX_INPUT_CHARS.toLocaleString()} characters`}
             </p>
           </div>
 
