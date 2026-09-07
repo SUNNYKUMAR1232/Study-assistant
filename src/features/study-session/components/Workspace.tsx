@@ -114,7 +114,7 @@ export function Workspace() {
         child centres it vertically without clipping a tall one — auto margins
         collapse on overflow, which `justify-center` does not.
       */}
-      <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-6 sm:py-8 lg:px-6 lg:py-10 xl:max-w-5xl">
+      <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-6 sm:py-8 lg:px-6 lg:py-10 xl:max-w-4xl">
         {screen === "composer" ? (
           <ComposerScreen
             draft={composer.draft}
