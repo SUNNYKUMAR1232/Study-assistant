@@ -242,6 +242,20 @@ That is why the **primary button is neutral** — near-black on light, near-whit
 
 ---
 
+## 9c. The glass shell
+
+The sidebar and mobile top bar are frosted — translucent with `backdrop-blur` — over a soft gradient. **Content surfaces stay solid.**
+
+**Why only the shell.** Glass costs contrast. Body text, and especially the emerald/rose answer states, must not sit on a blurred, semi-transparent background — that is exactly the readability those colours are carrying. Chrome (navigation, status) can afford it because it holds short labels; content cannot. So the effect is bounded to surfaces where it is free.
+
+**The gradient exists to serve the blur.** `backdrop-filter` over a flat fill produces nothing visible. The app root carries a subtle gradient so the frosted panels have something worth blurring.
+
+**A bug I shipped into my own review and caught in the browser.** I first put the frosted surface on the *sidebar's content* rather than on the `<aside>` that wraps it. The drawer's own header row is a sibling of that content, so it stayed fully transparent and the page title behind it bled through — the two headings rendered on top of each other. Moving the surface up to the `<aside>` fixed it and is the better structure anyway: **the shell owns the panel's chrome, the sidebar owns its content.**
+
+**Opacity is breakpoint-dependent**, which is the non-obvious part. As a drawer it covers arbitrary page content, so it sits at 95% — blur alone does not stop high-contrast text reading through. From `lg` it only ever covers the background gradient, where 70% is safe and actually reads as glass. Same component, different risk.
+
+---
+
 ## 10. Performance — including what I refused to do
 
 **Did:**
