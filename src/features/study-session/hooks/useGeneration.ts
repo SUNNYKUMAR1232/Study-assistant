@@ -30,11 +30,16 @@ interface State {
   error: ApiError | null;
   /** True when the visible result came from cache rather than a fresh call. */
   fromCache: boolean;
+  /**
+   * True when the result was re-opened from saved history rather than produced
+   * by this session. Callers use it to avoid re-recording what they just read.
+   */
+  restored: boolean;
 }
 
 type Action =
   | { type: "start" }
-  | { type: "resolve"; data: StudySession; meta: GenerationMeta; fromCache: boolean }
+  | { type: "resolve"; data: StudySession; meta: GenerationMeta; fromCache: boolean; restored?: boolean }
   | { type: "reject"; error: ApiError }
   | { type: "reset" };
 
@@ -44,6 +49,7 @@ const INITIAL_STATE: State = {
   meta: null,
   error: null,
   fromCache: false,
+  restored: false,
 };
 
 function reducer(state: State, action: Action): State {
@@ -59,6 +65,7 @@ function reducer(state: State, action: Action): State {
         meta: action.meta,
         error: null,
         fromCache: action.fromCache,
+        restored: action.restored ?? false,
       };
     case "reject":
       return { ...state, status: "error", error: action.error };
@@ -184,7 +191,7 @@ export function useGeneration(): UseGenerationResult {
   const loadSession = useCallback((data: StudySession, meta: GenerationMeta) => {
     requestIdRef.current++;
     controllerRef.current?.abort();
-    dispatch({ type: "resolve", data, meta, fromCache: true });
+    dispatch({ type: "resolve", data, meta, fromCache: true, restored: true });
   }, []);
 
   return {

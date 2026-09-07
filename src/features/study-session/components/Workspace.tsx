@@ -33,13 +33,14 @@ export function Workspace() {
 
   const isDev = process.env.NODE_ENV !== "production";
 
-  // Persist every successful generation. Re-opening a stored session replays
-  // the same data, and `record` de-duplicates rather than cloning it.
+  // Persist every successful generation — but not one that was merely re-opened
+  // from history. Recording a restored session would re-add it at the top and
+  // reshuffle the list every time the user browsed it.
   useEffect(() => {
-    if (generation.status === "success" && generation.data && generation.meta) {
+    if (generation.status === "success" && generation.data && generation.meta && !generation.restored) {
       library.record(generation.data, generation.meta);
     }
-  }, [generation.status, generation.data, generation.meta, library]);
+  }, [generation.status, generation.data, generation.meta, generation.restored, library]);
 
   const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
 
