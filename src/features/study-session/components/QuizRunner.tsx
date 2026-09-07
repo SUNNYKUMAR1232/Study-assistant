@@ -139,8 +139,10 @@ function OptionButton({
         "flex w-full items-start gap-3 rounded-lg border p-3 text-left text-sm transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
         "disabled:cursor-default",
+        // Neutral until answered, so the first colour on this screen is the
+        // emerald or rose that tells you whether you were right.
         state === "idle" &&
-          "border-slate-300 bg-white hover:border-indigo-400 hover:bg-indigo-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800",
+          "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600 dark:hover:bg-slate-800",
         state === "correct" &&
           "border-emerald-500 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200",
         state === "wrong" &&
