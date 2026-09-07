@@ -1,8 +1,24 @@
 @import "tailwindcss";
 
-/* Dark mode follows the OS via Tailwind v4's default `dark:` variant. There is
-   no toggle, so there is no flash of the wrong theme and no stored preference
-   to drift out of sync with the system. */
+/*
+ * Dark mode is driven by `data-theme` on <html>, which the inline script in
+ * the document head sets before first paint — so switching themes or reloading
+ * never flashes the wrong one.
+ *
+ * The media query is the fallback for the moment before that script runs, and
+ * for anyone with JavaScript disabled. `:not([data-theme="light"])` keeps an
+ * explicit light choice winning over a dark OS setting.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
 
 :root {
   color-scheme: light dark;
