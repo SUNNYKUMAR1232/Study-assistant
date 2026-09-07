@@ -274,7 +274,9 @@ AI was used as a development assistant for code generation, bug fixing, and rese
 
 ## 6. Completion time
 
-Total time taken: approximately **2 hours 37 minutes**.
+Total time taken: approximately **2 hours 20 minutes** of active work, across a 5 hour 19 minute window (64 commits, 07:59–13:18 UTC).
+
+Derived from the commit timestamps rather than memory, excluding idle gaps longer than six minutes — `git log` will confirm it.
 
 ## Thanks
 
