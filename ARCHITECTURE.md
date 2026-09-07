@@ -238,6 +238,8 @@ That is why the **primary button is neutral** — near-black on light, near-whit
 
 **Constraint worth naming:** in this app the accent *cannot* be green, red, or amber without making quiz feedback ambiguous. That eliminates most of the palette, which is part of why neutral-primary was the right answer rather than just a fashionable one.
 
+**A neutral fill is not a control.** The secondary button was `bg-slate-100`, which on a near-white page is almost invisible — the label read, but nothing said "button". It now carries a border, and the edge is what makes it an affordance. Worth remembering when a palette is deliberately low-colour: you lose the accent that used to do that job.
+
 **Accessibility:** emerald/rose is exactly the pair red-green colourblind users cannot separate. Correctness is therefore also carried by a ✓/✕ icon and screen-reader-only text, so the palette is never load-bearing.
 
 ---
@@ -262,7 +264,11 @@ Three rules, and one of them is a genuine trap.
 
 **One column width for both screens.** The composer and the session share a container, so nothing resizes when a result replaces the form. I briefly gave them different widths — a wide form, a narrower session — and the layout visibly jumped on every generate. Consistency beat per-screen tuning.
 
-**The column stops growing; the flashcard stops sooner.** Fluid up to ~1280px, then capped for line length. The card is capped tighter still (`max-w-2xl`) and gains height on desktop, because at full column width it rendered **1104×256 — a 4.3:1 letterbox strip** rather than a card. Measuring the aspect ratio is what caught that; it looked merely "wide" in a screenshot.
+**The column stops growing, and everything inside a screen shares its width.** Fluid up to ~1280px, then capped for line length.
+
+The flashcard taught me this the hard way, twice. At full width in a 1152px column it rendered **1104×256 — a 4.3:1 letterbox strip** rather than a card, which measuring the aspect ratio caught and a screenshot did not. My first fix was to cap the card alone at `max-w-2xl` — which produced a *worse* result: the card sat inset at 672px while the progress bar, tabs and Previous/Flip/Next all still spanned 976px, so the deck read as broken alignment rather than a deliberate focal point.
+
+The real fix was to narrow the shared column instead, so the card fills it like its siblings and carries its proportion through **height** (`lg:min-h-80`) rather than a separate width cap. Everything in the deck now measures the same, and the card lands at 2.25:1. **Aligning to one width beats tuning elements individually.**
 
 **Short content is centred vertically, using `my-auto`, not `justify-center`.** This is the trap. On a 1080p screen the composer left ~450px of dead space below it and floated in the upper-left. Centring fixes the proportion — but `justify-center` on a scroll container **clips the top of content taller than the viewport, with no way to scroll to it**. Auto margins collapse under overflow instead. Verified at 375×420, where the composer overflows by 401px: nothing clipped, top reachable, bottom scrollable.
 
