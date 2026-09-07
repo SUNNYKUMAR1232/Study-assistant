@@ -44,10 +44,13 @@ export function Flashcard({ card, isFlipped, onFlip }: FlashcardProps) {
           <Footer>Tap or press Space to flip</Footer>
         </Face>
 
+        {/* The two faces are told apart by their label and a step in surface
+            weight, not by a tint. A coloured back would be decoration, and in
+            this app colour is reserved for correctness and damage. */}
         <Face
           className={cn(
             "[transform:rotateY(180deg)]",
-            "border-indigo-200 bg-indigo-50 dark:border-indigo-900/60 dark:bg-indigo-950/50",
+            "border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-800",
           )}
         >
           <Label>Answer</Label>
