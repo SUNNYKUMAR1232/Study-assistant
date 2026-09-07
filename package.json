@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:preview": "node scripts/deploy.mjs --preview",
+    "deploy:check": "node scripts/deploy.mjs --dry-run"
   },
   "dependencies": {
     "clsx": "^2.1.1",
