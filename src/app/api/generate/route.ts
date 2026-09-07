@@ -37,15 +37,14 @@ export async function POST(request: Request): Promise<NextResponse<GenerateRespo
     return fail("bad_request", first?.message ?? "Invalid request.");
   }
 
-  // Dev-only failure injection, so the error paths can be demonstrated on demand.
+  // Dev-only failure injection, so the error paths can be demonstrated on
+  // demand. It always answers, and never reaches the real provider.
   const chaos = resolveChaosMode(request);
   if (chaos) {
-    const injected = await chaosResponse(chaos);
-    if (injected) {
-      return injected.ok
-        ? NextResponse.json(injected)
-        : NextResponse.json(injected, { status: STATUS_BY_CODE[injected.error.code] });
-    }
+    const injected = await chaosResponse(chaos, request.signal);
+    return injected.ok
+      ? NextResponse.json(injected)
+      : NextResponse.json(injected, { status: STATUS_BY_CODE[injected.error.code] });
   }
 
   const outcome = await generateStudySession(parsed.data, request.signal);

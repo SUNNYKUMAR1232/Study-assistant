@@ -68,11 +68,20 @@ const BROKEN_PAYLOADS: Record<string, string> = {
   }),
 };
 
-export async function chaosResponse(mode: Exclude<ChaosMode, "off">): Promise<GenerateResponse | null> {
+/** Longer than the client's 45s timeout, so the abort path runs for real. */
+const SLOW_DELAY_MS = 60_000;
+
+/**
+ * Always returns a response. A chaos mode must never fall through to the real
+ * provider — picking "slow" in a dropdown should not spend API quota.
+ */
+export async function chaosResponse(
+  mode: Exclude<ChaosMode, "off">,
+  signal?: AbortSignal,
+): Promise<GenerateResponse> {
   if (mode === "slow") {
-    // Longer than the client timeout, so the abort path runs for real.
-    await sleep(60_000);
-    return null;
+    await sleep(SLOW_DELAY_MS, signal);
+    return { ok: false, error: { code: "timeout", message: "The model took too long to respond." } };
   }
   if (mode === "rate-limit") {
     return { ok: false, error: { code: "rate_limited", message: "Groq is rate limiting us. Try again shortly." } };
@@ -101,6 +110,21 @@ export async function chaosResponse(mode: Exclude<ChaosMode, "off">): Promise<Ge
   };
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Abort-aware sleep. A plain setTimeout would keep the handler alive for the
+ * full delay after the client has already disconnected.
+ */
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) return resolve();
+
+    const finish = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", finish);
+      resolve();
+    };
+
+    const timer = setTimeout(finish, ms);
+    signal?.addEventListener("abort", finish, { once: true });
+  });
 }
