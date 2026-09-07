@@ -17,6 +17,7 @@ This app makes them exist, in about five seconds, from whatever text you already
 - **Flashcards** — flip, shuffle, navigate with arrow keys.
 - **A quiz** — four options per question, an explanation after every answer, and a **retest only the ones you missed** loop at the end.
 - **Saved sessions** — keep a session and reload it later; identical input is served from cache instead of being billed again.
+- **A live connection indicator** — a green dot in the header when the server can actually reach Groq, with the round-trip latency. It turns amber if the server has no API key and red if Groq is unreachable, so a misconfigured setup is visible immediately rather than after you've typed a paragraph and pressed generate.
 
 ### How it works
 
@@ -64,6 +65,7 @@ This app makes them exist, in about five seconds, from whatever text you already
 | Rate limited / upstream down / bad key | Mapped to a specific code and a message that says what to do |
 | A stale response arrives after a newer one | **Discarded.** Every request claims a monotonic id; only the newest may write to state |
 | A render bug we didn't anticipate | `app/error.tsx` boundary — a recovery button, never a blank page |
+| Missing key, dead network, revoked key | Surfaced **before** you type, by the live indicator in the header |
 
 **You don't have to take that table on faith.** In development, a **Chaos mode** dropdown appears under the form. Pick a failure — `malformed-json`, `wrong-shape`, `partial`, `slow`, `rate-limit` — and the server injects it. The broken payloads run through the *real* normaliser, so what you see is genuine recovery behaviour, not a mocked screen. It is disabled entirely in production.
 
@@ -79,6 +81,7 @@ src/
     error.tsx                       ← last-resort error boundary
     globals.css
     api/generate/route.ts           ← validates, delegates, maps errors to HTTP
+    api/health/route.ts             ← connection status for the live indicator
 
   features/
     study-session/                  ← the one real feature domain
@@ -86,10 +89,13 @@ src/
         schema.ts                   ← Zod. THE contract. Imported by both sides.
         prompt.ts                   ← system/user prompts + the tool definition
         normalize.ts                ← the only module that distrusts the model
-        generate.server.ts          ← the only module that knows about Groq
+        groqClient.server.ts        ← the only place the API key is read
+        generate.server.ts          ← the Groq call
+        health.server.ts            ← cached upstream reachability probe
         chaos.ts                    ← dev-only failure injection
       hooks/
         useGeneration.ts            ← fetch, abort, stale guard, cache, status
+        useApiHealth.ts             ← polling connection status
         useFlashcards.ts            ← index, flip, shuffle
         useQuiz.ts                  ← answers, score, missed, retest
         useSavedSessions.ts         ← localStorage persistence
@@ -208,13 +214,15 @@ npm run lint       # eslint
 | Variable | Default | Purpose |
 |---|---|---|
 | `GROQ_API_KEY` | — | **Required.** Your Groq key. |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Swap the model without touching code. |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Swap the model without touching code. |
+
+> **If the indicator is green but generating returns "Groq could not complete the request":** your key's model catalog probably doesn't include the configured model. The health probe only proves the key and network work, not that a *specific* model is available. Check `https://api.groq.com/openai/v1/models` with your key and set `GROQ_MODEL` to one you actually have. The server log prints the exact upstream error.
 
 ---
 
 ## 4. AI usage note
 
-**In the product.** The only model call is a single Groq chat completion in `generate.server.ts`, using `llama-3.3-70b-versatile` with forced tool calling. The prompt instructs the model to use *only* facts present in the pasted material and to return fewer items rather than pad. There is no streaming, no second call, and no agentic loop — one request, one structured result.
+**In the product.** The only model call is a single Groq chat completion in `generate.server.ts`, using `openai/gpt-oss-120b` with forced tool calling. The prompt instructs the model to use *only* facts present in the pasted material and to return fewer items rather than pad. There is no streaming, no second call, and no agentic loop — one request, one structured result.
 
 **In building it.** I used Claude (via Claude Code) as a pair-programming assistant: scaffolding, drafting the Tailwind class strings, and pushing back on my own architecture choices. Everything it produced I read, edited, and can defend line by line — the normalisation strategy, the stale-response guard, and the decision to skip React Query are mine, and `ARCHITECTURE.md` records the reasoning for each. Where I disagreed with a suggestion (adding React Query, inventing extra feature folders), I didn't take it.
 
@@ -228,6 +236,7 @@ npm run lint       # eslint
 - **Cache is never invalidated.** Identical input always returns the cached session; there's no "regenerate anyway" unless you hit Retry after an error. Saved sessions cap at 20 and are per-browser — no account, no sync.
 - **Input is capped at 12,000 characters** and truncation is the user's job. No PDF or file upload.
 - **English-centric prompt.** Other languages work but quality is untested.
+- **The connection indicator proves reachability, not capability.** It probes `models.list()`, which is free and consumes no token quota, so it confirms the key is valid and the network is open — but it cannot tell you that the *configured model* is available to your account, or that you have quota left. Those still surface as an error on generate. Probing with a real completion would be more honest and would cost tokens on every poll; I took the cheap check and documented the gap.
 - **No automated tests.** `normalize.ts` is the obvious first target — it's pure, and every branch corresponds to a real failure I've seen. Chaos mode covers the paths manually for now.
 - **The model can still be wrong.** Distractors are occasionally ambiguous and explanations occasionally restate the question. The app validates *shape*, not *truth*, which is why the footer says so.
 

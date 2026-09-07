@@ -141,6 +141,26 @@ const parsed = GenerateResponseSchema.safeParse(json);
 
 ---
 
+## 7b. The live connection indicator
+
+**What.** A green dot in the header with round-trip latency, backed by `GET /api/health`. Amber when the server has no key, red when Groq is unreachable, grey when *the browser* is offline.
+
+**Why it's worth having.** Before it, a missing or revoked key surfaced only after the user pasted a paragraph and pressed generate — the failure appeared to be about their input when it was about my configuration. Moving that signal to page load turns a confusing failure into an obvious one.
+
+**The design decisions I'd defend:**
+
+1. **Probe `models.list()`, not a chat completion.** It's a metadata call, so it proves the key is valid *and* the network path is open, while consuming **zero token quota**. A completion-based probe would be more truthful but would bill the user on every poll. I took the cheap check and wrote the gap into the README's limitations — it can't prove the configured *model* is available. That gap is real and I hit it in testing.
+2. **Cached server-side for 60s.** Clients poll on a shorter cycle, so N browser tabs collapse into at most one upstream probe per minute. `?force=1` bypasses it for the manual re-check button.
+3. **The route always returns HTTP 200**, with the state in the body. A 502 here would be indistinguishable from the app server itself being down — which is the one thing this endpoint exists to tell apart.
+4. **"Offline" is a separate client state.** `navigator.onLine` is checked before fetching, and I listen for `online`/`offline`. Reporting "server unreachable" when the user's wifi dropped sends them debugging the wrong machine.
+5. **Event-driven, not aggressive polling.** 45s interval, plus a re-check on window `focus` and on regaining network — those are the moments the answer actually changes. Polling every 5s would be load without information.
+6. **Same stale-guard as `useGeneration`.** Polls overlap; a slow probe must not overwrite a newer fast one. Same `requestIdRef` discipline, for the same reason (§3).
+
+**If they ask "isn't a health check overkill for a take-home?"**
+> It's twenty lines of server code and it converts my single worst first-run experience — silent misconfiguration — into a visible one. It also gave me a free place to put latency, which is the number I'd want in production anyway.
+
+---
+
 ## 8. API key handling
 
 Read from `process.env.GROQ_API_KEY` in `generate.server.ts` only. That module imports `server-only`, so importing it from a client component is a **build error**, not a runtime leak. No `NEXT_PUBLIC_` variable exists in the project. `.env.local` is gitignored.
