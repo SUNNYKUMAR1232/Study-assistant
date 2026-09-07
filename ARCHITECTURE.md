@@ -222,8 +222,23 @@ Read from `process.env.GROQ_API_KEY` in `generate.server.ts` only. That module i
 - Keyboard: arrows navigate, Space flips, Ctrl/Cmd+Enter submits. The global handler bails when focus is in an input, so it never hijacks typing.
 - `aria-live` on loading and answer feedback; `aria-busy` on loading buttons.
 - **Quiz correctness is never colour-only** — there's an icon and screen-reader-only text too. Red/green is the exact pair colourblind users can't distinguish.
-- Dark mode follows the OS with no toggle, so there's no flash of the wrong theme and no persisted preference to drift out of sync.
+- Dark mode is driven by `data-theme` on `<html>`, set by a tiny inline script in the document `<head>` **before first paint**. Doing it in React would render the default theme and repaint — the flash of wrong theme. The preference has three states, not two: `system` is a real choice that keeps following the OS, and light/dark pin it. The toggle flips what is *on screen*, not what the OS wants.
+- The toggle icon is withheld until after mount. The server cannot know a `localStorage` preference, so rendering an icon during SSR would guess wrong half the time and visibly swap on hydration; the button holds its footprint meanwhile so nothing shifts.
 - `prefers-reduced-motion` kills the card-flip animation.
+
+---
+
+## 9b. Colour
+
+**The rule: colour carries meaning, never decoration.** Emerald means a correct answer, rose a wrong one, amber a partially damaged result. Nothing else on the screen is allowed to be colourful, so those three always read as signal.
+
+That is why the **primary button is neutral** — near-black on light, near-white on dark. An indigo button competes with the quiz feedback for attention and spends a hue on "this is a button". Neutral also beats any accent on contrast, so the main action stays the loudest thing on screen without borrowing a semantic colour.
+
+**What I removed and why.** Indigo was originally doing six jobs: primary button, progress fill, focus rings, active tab, sidebar selection, and the flashcard answer face. An accent that appears everywhere stops being an accent. Now the flashcard back is distinguished by its label and a step in surface weight rather than a tint, the progress bar and quiz hovers are neutral, and **indigo survives only on focus rings and one text link** — roughly the 10% accent budget the 60/30/10 guide suggests.
+
+**Constraint worth naming:** in this app the accent *cannot* be green, red, or amber without making quiz feedback ambiguous. That eliminates most of the palette, which is part of why neutral-primary was the right answer rather than just a fashionable one.
+
+**Accessibility:** emerald/rose is exactly the pair red-green colourblind users cannot separate. Correctness is therefore also carried by a ✓/✕ icon and screen-reader-only text, so the palette is never load-bearing.
 
 ---
 
