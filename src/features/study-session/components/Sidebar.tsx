@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/shared/lib/cn";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { ApiStatus } from "./ApiStatus";
 import type { StoredSession } from "../hooks/useSessionLibrary";
 
@@ -96,8 +97,9 @@ export function Sidebar({
         )}
       </nav>
 
-      <div className="border-t border-slate-200 p-3 dark:border-slate-800">
-        <ApiStatus />
+      <div className="flex items-center justify-between gap-2 border-t border-slate-200 p-3 dark:border-slate-800">
+        <div className="min-w-0"><ApiStatus /></div>
+        <ThemeToggle />
       </div>
     </div>
   );
