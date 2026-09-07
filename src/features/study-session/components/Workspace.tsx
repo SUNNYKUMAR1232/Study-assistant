@@ -108,9 +108,13 @@ export function Workspace() {
         />
       }
     >
-      {/* Width is set per screen, not here: a form can use a wide column,
-          but a flashcard stretched to 1100px stops looking like a card. */}
-      <div className="w-full px-4 py-5 sm:py-8 lg:px-6 lg:py-10">
+      {/*
+        One column width for both screens, so the layout does not jump when a
+        session replaces the composer. `min-h-full` plus `my-auto` on a short
+        child centres it vertically without clipping a tall one — auto margins
+        collapse on overflow, which `justify-center` does not.
+      */}
+      <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-6 sm:py-8 lg:px-6 lg:py-10 xl:max-w-5xl">
         {screen === "composer" ? (
           <ComposerScreen
             draft={composer.draft}
@@ -151,7 +155,7 @@ function ComposerScreen({
   onCancel: () => void;
 }) {
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-5 xl:max-w-5xl 2xl:max-w-6xl">
+    <div className="my-auto w-full space-y-5">
       <div className="hidden lg:block">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           New study session
@@ -211,7 +215,7 @@ function SessionScreen({
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4 xl:max-w-4xl">
+    <div className="w-full space-y-4">
       {/* Back is the only navigation here. Starting a new session is the
           sidebar's job, and having both invited the wrong one to be clicked. */}
       <BackButton onClick={onBack} />
