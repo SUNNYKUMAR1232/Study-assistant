@@ -21,32 +21,52 @@ This app makes them exist, in about five seconds, from whatever text you already
 
 ### How it works
 
+One round trip, with a hard line down the middle. Everything above the line runs
+in the browser; the API key only ever exists below it.
+
 ```
- Your text
-     │
-     ▼
- InputPanel ─────► useGeneration ─────► POST /api/generate
- (no fetch here)   (abort + stale         (server only —
-                    guard + cache)         the API key lives here)
-                                                │
-                                                ▼
-                                        generate.server.ts
-                                                │
-                                    Groq, forced to call the
-                                    save_study_session tool
-                                                │
-                                                ▼
-                                         normalize.ts
-                                   (assume the model lied:
-                                    repair, drop, or reject)
-                                                │
-                                                ▼
-                                       Zod-validated session
-                                                │
-     ┌──────────────────────────────────────────┘
-     ▼
- FlashcardDeck / QuizRunner  (pure props, zero network awareness)
+┌─ BROWSER ─────────────────────────────────────────────────────────────┐
+│                                                                       │
+│  InputPanel ──── draft ────► useGeneration                            │
+│  never calls fetch           · AbortController  cancel + 45s timeout  │
+│                              · request-id guard newest response wins  │
+│                              · localStorage     same input is free    │
+│                                     │                                 │
+└─────────────────────────────────────┼─────────────────────────────────┘
+                                      │  POST /api/generate
+        the key never crosses ────────┤
+        this line                     │
+┌─ SERVER ────────────────────────────┼─────────────────────────────────┐
+│                                     ▼                                 │
+│  app/api/generate/route.ts    validate the request ─── api/schema.ts  │
+│         │                     transport only: no prompts, no Groq     │
+│         ▼                                                             │
+│  server/generate.server.ts    ONE Groq call. tool_choice forces the   │
+│         │                     model to call save_study_session, whose │
+│         │                     JSON Schema is generated from the Zod   │
+│         ▼                                                             │
+│  normalize.ts                 assume it lied anyway:                  │
+│         │                     repair · drop the unusable · or reject  │
+│         ▼                                                             │
+│  a Zod-validated session ───────────┐                                 │
+└─────────────────────────────────────┼─────────────────────────────────┘
+                                      │  JSON  { ok, data, meta }
+┌─ BROWSER, on the way back ──────────┼─────────────────────────────────┐
+│                                     ▼                                 │
+│  useGeneration                re-validates with the SAME schema, so   │
+│         │                     a stale bundle fails loudly not blindly │
+│         ▼                                                             │
+│  FlashcardDeck / QuizRunner   props in, callbacks out. No component   │
+│                               in this app calls fetch.                │
+└───────────────────────────────────────────────────────────────────────┘
 ```
+
+Read it as three claims. **The key is server-only** — it is read in one module
+below the line and there is no `NEXT_PUBLIC_` variable anywhere. **One schema
+governs the whole trip** — it validates the request, becomes the tool definition
+sent to Groq, validates the response, and validates it again on the client.
+**Distrust is contained** — `normalize.ts` is the only module that knows the
+model is unreliable, so everything downstream of it can render without checking.
 
 ### Failure handling — the part worth reading
 
