@@ -256,6 +256,20 @@ The sidebar and mobile top bar are frosted — translucent with `backdrop-blur` 
 
 ---
 
+## 9d. Proportion on large screens
+
+Three rules, and one of them is a genuine trap.
+
+**One column width for both screens.** The composer and the session share a container, so nothing resizes when a result replaces the form. I briefly gave them different widths — a wide form, a narrower session — and the layout visibly jumped on every generate. Consistency beat per-screen tuning.
+
+**The column stops growing; the flashcard stops sooner.** Fluid up to ~1280px, then capped for line length. The card is capped tighter still (`max-w-2xl`) and gains height on desktop, because at full column width it rendered **1104×256 — a 4.3:1 letterbox strip** rather than a card. Measuring the aspect ratio is what caught that; it looked merely "wide" in a screenshot.
+
+**Short content is centred vertically, using `my-auto`, not `justify-center`.** This is the trap. On a 1080p screen the composer left ~450px of dead space below it and floated in the upper-left. Centring fixes the proportion — but `justify-center` on a scroll container **clips the top of content taller than the viewport, with no way to scroll to it**. Auto margins collapse under overflow instead. Verified at 375×420, where the composer overflows by 401px: nothing clipped, top reachable, bottom scrollable.
+
+The app therefore uses ~96% of the viewport width from 768–1280px, ~88% at 1536, and ~70% at 1920 — deliberately, because a text column that keeps growing stops being readable, and vertical centring makes the remaining space read as intentional rather than abandoned.
+
+---
+
 ## 10. Performance — including what I refused to do
 
 **Did:**
