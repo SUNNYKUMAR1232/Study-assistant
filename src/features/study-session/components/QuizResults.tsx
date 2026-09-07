@@ -34,11 +34,15 @@ export function QuizResults({
           <p className="text-sm font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
             {isRetest ? "Retest complete" : "Quiz complete"}
           </p>
-          <p className="mt-2 text-4xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-            {score}
-            <span className="text-slate-400 dark:text-slate-600">/{total}</span>
+          {/* Scored out of 100 so a 5-question quiz and a 15-question one
+              are directly comparable. */}
+          <p className="mt-2 text-5xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
+            {percent}
+            <span className="text-2xl text-slate-400 dark:text-slate-600">/100</span>
           </p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{percent}% · {verdict(percent)}</p>
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+            {score} of {total} correct · {verdict(percent)}
+          </p>
 
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
             {missed.length > 0 ? (

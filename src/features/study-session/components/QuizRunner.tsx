@@ -51,7 +51,9 @@ export function QuizRunner({ questions }: { questions: QuizQuestion[] }) {
           Question {quiz.index + 1} of {quiz.total}
           {quiz.isRetest ? " · retest" : ""}
         </p>
-        <p className="text-sm text-slate-500 tabular-nums dark:text-slate-400">Score {quiz.score}</p>
+        <p className="text-sm text-slate-500 tabular-nums dark:text-slate-400">
+          {quiz.score} correct
+        </p>
       </div>
 
       <ProgressBar value={quiz.index + 1} max={quiz.total} label="Quiz progress" />
