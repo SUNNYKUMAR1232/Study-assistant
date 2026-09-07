@@ -268,6 +268,8 @@ The script calls `tsc` and `next` by their resolved paths rather than through `n
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the architecture, design patterns, layer boundaries, and trade-offs.
 
+For interview preparation, see [`INTERVIEW-STUDY.md`](INTERVIEW-STUDY.md).
+
 ## 5. AI usage
 
 AI was used as a development assistant for code generation, bug fixing, and researching alternative implementation approaches. I reviewed and tested the generated suggestions, made the final implementation decisions, and remain responsible for the architecture, design choices, and behavior of the application.
