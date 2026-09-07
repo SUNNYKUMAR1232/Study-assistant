@@ -3,6 +3,7 @@
 import { Button } from "@/shared/ui/Button";
 import { Card, CardBody } from "@/shared/ui/Card";
 import { cn } from "@/shared/lib/cn";
+import { RichText } from "@/shared/ui/RichText";
 import type { QuizQuestion } from "../types";
 
 export interface QuizResultsProps {
@@ -83,9 +84,11 @@ export function QuizResults({
                       {given === undefined ? "nothing" : question.options[given]}
                     </p>
                   ) : null}
-                  <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                    {question.explanation}
-                  </p>
+                  <RichText
+                    value={question.explanation}
+                    align="left"
+                    className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400"
+                  />
                 </CardBody>
               </Card>
             </li>

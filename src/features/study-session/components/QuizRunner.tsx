@@ -5,6 +5,7 @@ import { Card, CardBody } from "@/shared/ui/Card";
 import { ProgressBar } from "@/shared/ui/ProgressBar";
 import { EmptyState } from "@/shared/ui/states";
 import { cn } from "@/shared/lib/cn";
+import { RichText } from "@/shared/ui/RichText";
 import { useQuiz } from "../hooks/useQuiz";
 import { QuizResults } from "./QuizResults";
 import type { QuizQuestion } from "../types";
@@ -83,10 +84,12 @@ export function QuizRunner({ questions }: { questions: QuizQuestion[] }) {
               role="status"
               className="mt-4 rounded-lg bg-slate-50 p-3 text-sm leading-relaxed text-slate-700 dark:bg-slate-800/60 dark:text-slate-300"
             >
-              <span className="font-semibold">
-                {quiz.selected === question.answerIndex ? "Correct. " : "Not quite. "}
-              </span>
-              {question.explanation}
+              {/* The verdict gets its own line: an explanation that turns out
+                  to be a list cannot sit inline after it. */}
+              <p className="font-semibold">
+                {quiz.selected === question.answerIndex ? "Correct." : "Not quite."}
+              </p>
+              <RichText value={question.explanation} align="left" className="mt-1" />
             </div>
           ) : null}
         </CardBody>

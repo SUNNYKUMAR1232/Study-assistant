@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/shared/lib/cn";
+import { RichText } from "@/shared/ui/RichText";
 import type { Flashcard as FlashcardModel } from "../types";
 
 /**
@@ -57,9 +58,10 @@ export function Flashcard({ card, isFlipped, onFlip }: FlashcardProps) {
           )}
         >
           <Label>Answer</Label>
-          <p className="text-balance text-base leading-relaxed text-slate-900 sm:text-lg dark:text-slate-100">
-            {card.back}
-          </p>
+          <RichText
+            value={card.back}
+            className="text-base leading-relaxed text-slate-900 sm:text-lg dark:text-slate-100"
+          />
           <Footer>Tap to flip back</Footer>
         </Face>
       </div>
