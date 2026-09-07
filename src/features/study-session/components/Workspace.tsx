@@ -108,7 +108,7 @@ export function Workspace() {
         />
       }
     >
-      <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:py-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:py-8 lg:px-6 lg:py-12">
         {screen === "composer" ? (
           <ComposerScreen
             draft={composer.draft}
