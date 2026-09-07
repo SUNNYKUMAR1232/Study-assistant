@@ -285,22 +285,28 @@ The script calls `tsc` and `next` by their resolved paths rather than through `n
 
 ## 6. Time spent
 
-**~8 hours**, roughly:
+**About 2 hours of active work**, across a 2h 37m wall-clock window (first commit 07:59, last 10:36). These figures come from the commit timestamps rather than memory — `git log` will confirm them.
 
-| Time | Work |
+| Block | Time |
 |---|---|
-| 0:30 | Scaffold, folder structure, shared UI primitives |
-| 0:30 | Zod schema and inferred types — contract before anything else |
-| 1:30 | Route handler, Groq tool calling, normalisation and salvage |
-| 1:15 | `useGeneration` — reducer, abort, stale guard, cache |
-| 1:15 | Input panel and flashcard deck |
-| 1:15 | Quiz runner, results, retest-missed loop |
-| 0:45 | Loading/empty/error states, mobile at 375px, chaos mode |
-| 1:00 | README, architecture notes, commit history |
+| Scaffold, Zod contract, normaliser, Groq route, hooks, components, first README | 24m |
+| Repo hygiene (lockfile, ignores) | 7m |
+| Live connection indicator + shared Groq client | 7m |
+| One-command deploy script | 7m |
+| Sidebar shell, two-screen flow, auto-saved history | 7m |
+| Chaos-mode audit — found `slow` reaching the real API | 10m |
+| Colour system (neutral primary, colour reserved for meaning) | 8m |
+| Theme toggle, back navigation, score out of 100 | 7m |
+| Frosted shell + isolated build directory | 7m |
+| Demo inputs and this manual test plan | 7m |
+| Large-screen proportion | 7m |
+| Flashcard alignment + button visibility in light mode | 7m |
+| Sidebar padding + history reordering fix | 7m |
+| **Total active** | **~1h 52m** |
 
-The largest single block went to failure handling, which felt like the right allocation given what the brief said carries the signal.
+**What that number does and does not include.** It is the time from first to last commit, minus idle gaps over six minutes. It excludes reading the brief, deciding the approach, and reviewing output between rounds. It was also written with Claude Code as a pair — disclosed in §4 — which is the main reason the elapsed time is short; the decisions, the failure-handling design, and every bug listed in `ARCHITECTURE.md` were reasoned through rather than accepted as generated.
 
----
+The largest single block went to failure handling, and the bugs found while verifying it (chaos `slow` reaching the live API, the duplicated sidebar subtree, history reordering on re-open) took longer than the features they were hiding in. That felt like the right allocation given what the brief said carries the signal.
 
 ## Thanks
 
