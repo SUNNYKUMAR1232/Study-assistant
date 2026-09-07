@@ -16,7 +16,7 @@ This app makes them exist, in about five seconds, from whatever text you already
 
 - **Flashcards** — flip, shuffle, navigate with arrow keys.
 - **A quiz** — four options per question, an explanation after every answer, and a **retest only the ones you missed** loop at the end.
-- **Saved sessions** — keep a session and reload it later; identical input is served from cache instead of being billed again.
+- **A session sidebar** — every session you generate is saved automatically and listed on the left, so you can jump back to any of them. Identical input is served from cache instead of being billed again.
 - **A live connection indicator** — a green dot in the header when the server can actually reach Groq, with the round-trip latency. It turns amber if the server has no API key and red if Groq is unreachable, so a misconfigured setup is visible immediately rather than after you've typed a paragraph and pressed generate.
 
 ### How it works
@@ -77,7 +77,7 @@ This app makes them exist, in about five seconds, from whatever text you already
 src/
   app/                              ← routing + transport only
     layout.tsx
-    page.tsx                        ← owns layout and wiring, no state of its own
+    page.tsx                        ← renders the workspace; owns nothing
     error.tsx                       ← last-resort error boundary
     globals.css
     api/generate/route.ts           ← validates, delegates, maps errors to HTTP
@@ -96,10 +96,15 @@ src/
       hooks/
         useGeneration.ts            ← fetch, abort, stale guard, cache, status
         useApiHealth.ts             ← polling connection status
+        useComposerDraft.ts         ← the draft, so it survives navigation
         useFlashcards.ts            ← index, flip, shuffle
         useQuiz.ts                  ← answers, score, missed, retest
-        useSavedSessions.ts         ← localStorage persistence
-      components/                   ← presentational; props in, callbacks out
+        useSessionLibrary.ts        ← auto-saved session history
+      components/
+        Workspace.tsx               ← wiring + the one bit of navigation state
+        AppShell.tsx                ← sidebar rail / drawer layout
+        Sidebar.tsx                 ← history list, New session, status
+        ...                         ← the rest are presentational
       types.ts                      ← every type inferred from schema.ts
 
   shared/

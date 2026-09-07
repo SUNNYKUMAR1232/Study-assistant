@@ -190,6 +190,26 @@ Read from `process.env.GROQ_API_KEY` in `generate.server.ts` only. That module i
 
 ---
 
+## 8c. The two-screen shell
+
+**What.** A ChatGPT-shaped layout: a session history rail on the left, the composer or the session in the main pane. Below `lg` the rail becomes an off-canvas drawer.
+
+**Why two screens instead of one scrolling page.** Results used to stack under the form. On a 375px phone that put the thing the user just asked for below the fold, so a successful generation looked like nothing had happened. Submitting now navigates to the session screen immediately, which means the loading state appears where the result will be.
+
+**Decisions worth defending:**
+
+1. **Sessions save themselves.** A history list the user has to remember to populate stays empty. Every successful generation is persisted and the user curates by deleting. `record()` de-duplicates by content fingerprint, so re-opening a stored session does not clone it.
+2. **The sidebar is mounted once and repositioned with CSS** (`fixed` → `lg:static`). I first rendered it twice — a desktop copy and a drawer copy — and **testing caught it**: the history list showed four entries for two sessions, and, worse, two `useApiHealth` hooks were running two polling loops and doubling the health requests. Duplicating a subtree duplicates its effects.
+3. **The breakpoint is tracked in JS as well as CSS** (`matchMedia`). Modal semantics — `role="dialog"`, `aria-modal`, focus capture, scroll lock, Escape — belong to the drawer, not to the desktop rail. CSS alone cannot express that, and a rail permanently announcing itself as a modal dialog is worse than no dialog at all.
+4. **Back preserves the draft; New session clears it.** Two different intentions deserve two different controls. Making that work meant lifting the draft out of `InputPanel` into `useComposerDraft` — component-local state dies on unmount, which would turn "back" into "discard".
+5. **The metadata row is gone.** Model name, latency and cache-source were developer-facing detail sitting in the user's way. The same information still reaches me through the connection indicator and the server log.
+6. **The quiz scores out of 100**, so a 5-question quiz and a 15-question one are directly comparable; the raw `3 of 5 correct` sits underneath.
+
+**If they ask "why not real routes per session?"**
+> Sessions live in `localStorage`, so a `/session/[id]` route would render a shell on the server and fill it in on the client anyway — the URL would look meaningful without being shareable. One route with a screen state is the honest version. If sessions moved server-side, routes would be the right call, and that's the point at which React Query would earn its place too (§4).
+
+---
+
 ## 9. Mobile & accessibility specifics
 
 - Designed at 375px first; the layout is a single column that gains breathing room, not a desktop layout squeezed down.
