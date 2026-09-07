@@ -1,5 +1,6 @@
 "use client";
 
+import { ApiStatus } from "@/features/study-session/components/ApiStatus";
 import { InputPanel } from "@/features/study-session/components/InputPanel";
 import { SavedSessionsList } from "@/features/study-session/components/SavedSessionsList";
 import { SessionView } from "@/features/study-session/components/SessionView";
@@ -25,13 +26,16 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-10">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
-          Study Assistant
-        </h1>
-        <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
-          Paste anything you need to learn. Get flashcards and a quiz you can actually work through.
-        </p>
+      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
+            Study Assistant
+          </h1>
+          <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+            Paste anything you need to learn. Get flashcards and a quiz you can actually work through.
+          </p>
+        </div>
+        <ApiStatus />
       </header>
 
       <div className="space-y-6">
