@@ -24,8 +24,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANTS: Record<Variant, string> = {
   primary:
     "bg-slate-900 text-white hover:bg-slate-800 active:bg-slate-700 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-white dark:active:bg-slate-200",
+  // Bordered, not just a tint: a slate-100 fill on a near-white page is
+  // almost invisible in light mode, so the edge is what makes it a control.
   secondary:
-    "bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700",
+    "border border-slate-300 bg-white text-slate-900 hover:border-slate-400 hover:bg-slate-50 " +
+    "dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-700",
   ghost:
     "bg-transparent text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
   danger:
