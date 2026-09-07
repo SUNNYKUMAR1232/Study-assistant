@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/cn";
 import { ErrorState, LoadingState } from "@/shared/ui/states";
 import { AppShell } from "./AppShell";
@@ -127,7 +126,6 @@ export function Workspace() {
             error={generation.status === "error" ? generation.error : null}
             onRetry={generation.retry}
             onBack={handleBack}
-            onNew={handleNewSession}
           />
         )}
       </div>
@@ -184,7 +182,6 @@ function SessionScreen({
   error,
   onRetry,
   onBack,
-  onNew,
 }: {
   isLoading: boolean;
   data: StudySession | null;
@@ -192,7 +189,6 @@ function SessionScreen({
   error: ApiError | null;
   onRetry: () => void;
   onBack: () => void;
-  onNew: () => void;
 }) {
   const body = () => {
     // A first load with nothing to show is the only full skeleton case; a
@@ -214,12 +210,9 @@ function SessionScreen({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <BackButton onClick={onBack} />
-        <Button size="sm" variant="ghost" onClick={onNew}>
-          New session
-        </Button>
-      </div>
+      {/* Back is the only navigation here. Starting a new session is the
+          sidebar's job, and having both invited the wrong one to be clicked. */}
+      <BackButton onClick={onBack} />
       {body()}
     </div>
   );
