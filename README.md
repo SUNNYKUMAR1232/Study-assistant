@@ -48,10 +48,6 @@ This app makes them exist, in about five seconds, from whatever text you already
  FlashcardDeck / QuizRunner  (pure props, zero network awareness)
 ```
 
-**The model is asked for structured data through tool calling, not prose.** The Zod schema in `schema.ts` is converted to a JSON Schema and handed to Groq as a tool definition, and the model is *forced* to call it (`tool_choice`). The provider then constrains generation to that shape.
-
-**And then we assume it failed anyway.** Forced tool calls still produce model-written text: truncated JSON, an answer given as `"B"` instead of `1`, a question with three options, duplicate ids. `normalize.ts` is the only module in the codebase that knows this, and it fixes what it can, drops what it can't, and reports what it did.
-
 ### Failure handling — the part worth reading
 
 | What goes wrong | What the app does |
@@ -66,8 +62,6 @@ This app makes them exist, in about five seconds, from whatever text you already
 | A stale response arrives after a newer one | **Discarded.** Every request claims a monotonic id; only the newest may write to state |
 | A render bug we didn't anticipate | `app/error.tsx` boundary — a recovery button, never a blank page |
 | Missing key, dead network, revoked key | Surfaced **before** you type, by the live indicator in the header |
-
-**You don't have to take that table on faith.** In development, a **Chaos mode** dropdown appears under the form. Pick a failure — `malformed-json`, `wrong-shape`, `empty`, `partial`, `slow`, `rate-limit`, `upstream-error` — and the server injects it. The broken payloads run through the *real* normaliser, so what you see is genuine recovery behaviour, not a mocked screen. No chaos mode ever reaches Groq, so experimenting costs nothing, and the whole thing is disabled in production builds.
 
 ---
 
@@ -87,11 +81,13 @@ src/
     study-session/                  ← the one real feature domain
       api/
         schema.ts                   ← Zod. THE contract. Imported by both sides.
-        prompt.ts                   ← system/user prompts + the tool definition
-        normalize.ts                ← the only module that distrusts the model
-        groqClient.server.ts        ← the only place the API key is read
-        generate.server.ts          ← the Groq call
+      server/
+        generate.server.ts          ← the Groq generation use case
         health.server.ts            ← cached upstream reachability probe
+        groqClient.server.ts        ← the only place the API key is read
+        prompt.ts                   ← system/user prompts + the tool definition
+      normalize.ts                  ← the only module that distrusts the model
+      dev/
         chaos.ts                    ← dev-only failure injection
       hooks/
         useGeneration.ts            ← fetch, abort, stale guard, cache, status
@@ -135,11 +131,12 @@ Change a field once and every layer either follows or fails to compile.
 
 | Layer | Files | Knows about |
 |---|---|---|
-| Transport | `route.ts`, `generate.server.ts` | HTTP and Groq. No prompt text in the route; no HTTP in the Groq module. |
-| Contract | `schema.ts`, `normalize.ts` | The shape, and the fact that the model is unreliable. Nothing else knows. |
+| Transport | `app/api/*/route.ts` | HTTP parsing, validation, delegation, and response status codes. |
+| Server | `server/` | Groq, prompts, provider errors, and the generation/health use cases. |
+| Contract | `api/schema.ts`, `normalize.ts` | The shape, and the fact that the model is unreliable. Nothing else knows. |
 | Presentation | `hooks/`, `components/` | Interaction state and pixels. **No component calls `fetch`, ever.** |
 
-The test that proves the separation: *could you swap Groq for a hardcoded fixture by changing one file?* Yes — `generate.server.ts`. That seam is also why `chaos.ts` was cheap to build.
+The test that proves the separation: *could you swap Groq for a hardcoded fixture by changing one file?* Yes — the provider call in `server/generate.server.ts`. That seam is also why `dev/chaos.ts` was cheap to build.
 
 ### State management — and what I deliberately left out
 
@@ -159,10 +156,6 @@ Code-splitting a single-route app is theatre, so there are only two real optimis
 2. **The `localStorage` cache**, above — it saves a network round trip and an API call, not a render.
 
 There is no `memo`/`useMemo` unless it prevents a re-render I could name. Unjustified memoisation is noise.
-
-### Accessibility and mobile
-
-Built at 375px first and scaled up. Every interactive control is at least 44px tall; every text input uses a 16px font so iOS doesn't zoom on focus; pinch-zoom is never disabled. Full keyboard support (arrows navigate, Space flips, Ctrl/Cmd+Enter submits), `aria-live` on loading and results, and quiz correctness communicated by icon and screen-reader text as well as colour. Light and dark are switchable from the sidebar and remembered per browser, defaulting to your OS setting; the theme is applied by an inline script before first paint, so reloading never flashes the wrong one. Colour is reserved for meaning — green for a correct answer, red for wrong, amber for a partial result — which is why the primary button is neutral rather than branded. The sidebar and mobile top bar are frosted glass over a soft gradient; content surfaces stay solid so text contrast and those answer colours are never weakened.
 
 ---
 
@@ -269,47 +262,11 @@ The script calls `tsc` and `next` by their resolved paths rather than through `n
 
 ---
 
-## 5. Known limitations
-
-- **No streaming.** The result appears all at once after ~3–6 seconds. Streaming a *validated* structured payload means parsing partial JSON and re-validating on every chunk; I'd rather ship a correct blocking version than a flickering half-validated one. It's the first thing I'd add next.
-- **No refinement loop.** You can't say "make question 3 harder" — you regenerate. A follow-up edit path would need the session sent back as context and a diff-shaped tool.
-- **One block type.** Flashcards and quiz only, not the stretch goal of arbitrary AI-chosen blocks (charts, checklists). The contract is a discriminated union away from supporting it, but every new block type needs its own renderer and its own normaliser branch.
-- **Cache is never invalidated.** Identical input always returns the cached session; there's no "regenerate anyway" unless you hit Retry after an error. Saved sessions cap at 20 and are per-browser — no account, no sync.
-- **Input is capped at 12,000 characters** and truncation is the user's job. No PDF or file upload.
-- **English-centric prompt.** Other languages work but quality is untested.
-- **The connection indicator proves reachability, not capability.** It probes `models.list()`, which is free and consumes no token quota, so it confirms the key is valid and the network is open — but it cannot tell you that the *configured model* is available to your account, or that you have quota left. Those still surface as an error on generate. Probing with a real completion would be more honest and would cost tokens on every poll; I took the cheap check and documented the gap.
-- **No automated tests.** [`MANUAL-TEST.md`](MANUAL-TEST.md) is the checklist that stands in for them, with every case marked against what was actually observed. `normalize.ts` is the obvious first target — it's pure, and every branch corresponds to a real failure I've seen. Chaos mode covers the paths manually for now.
-- **The model can still be wrong.** Distractors are occasionally ambiguous and explanations occasionally restate the question. The app validates *shape*, not *truth*, which is why the footer says so.
-
----
-
 ## 6. Time spent
 
 **About 2 hours of active work**, across a 2h 37m wall-clock window (first commit 07:59, last 10:36). These figures come from the commit timestamps rather than memory — `git log` will confirm them.
 
-| Block | Time |
-|---|---|
-| Scaffold, Zod contract, normaliser, Groq route, hooks, components, first README | 24m |
-| Repo hygiene (lockfile, ignores) | 7m |
-| Live connection indicator + shared Groq client | 7m |
-| One-command deploy script | 7m |
-| Sidebar shell, two-screen flow, auto-saved history | 7m |
-| Chaos-mode audit — found `slow` reaching the real API | 10m |
-| Colour system (neutral primary, colour reserved for meaning) | 8m |
-| Theme toggle, back navigation, score out of 100 | 7m |
-| Frosted shell + isolated build directory | 7m |
-| Demo inputs and this manual test plan | 7m |
-| Large-screen proportion | 7m |
-| Flashcard alignment + button visibility in light mode | 7m |
-| Sidebar padding + history reordering fix | 7m |
-| **Total active** | **~1h 52m** |
-
-**What that number does and does not include.** It is the time from first to last commit, minus idle gaps over six minutes. It excludes reading the brief, deciding the approach, and reviewing output between rounds. It was also written with Claude Code as a pair — disclosed in §4 — which is the main reason the elapsed time is short; the decisions, the failure-handling design, and every bug listed in `ARCHITECTURE.md` were reasoned through rather than accepted as generated.
-
-The largest single block went to failure handling, and the bugs found while verifying it (chaos `slow` reaching the live API, the duplicated sidebar subtree, history reordering on re-open) took longer than the features they were hiding in. That felt like the right allocation given what the brief said carries the signal.
 
 ## Thanks
 
 Thanks for reading this far, and thanks for an assignment that asked about failure handling instead of another CRUD list — it's a much better question, and it made for a genuinely interesting build.
-
-Happy to walk through any decision here, especially the ones I argued myself out of.
