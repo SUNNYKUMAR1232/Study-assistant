@@ -12,9 +12,18 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
 }
 
+/**
+ * The primary action is neutral, not coloured.
+ *
+ * In this app colour carries meaning: emerald means a correct answer, rose a
+ * wrong one, amber a partially damaged result. Spending a hue on "this is a
+ * button" competes with that. Near-black on light and near-white on dark also
+ * outranks any accent for contrast, so the main action stays the loudest thing
+ * on the screen without borrowing a semantic colour.
+ */
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-indigo-600 text-white hover:bg-indigo-500 active:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400",
+    "bg-slate-900 text-white hover:bg-slate-800 active:bg-slate-700 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-white dark:active:bg-slate-200",
   secondary:
     "bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700",
   ghost:
