@@ -6,6 +6,8 @@ import type {
   GenerateRequestSchema,
   GenerateResponseSchema,
   GenerationMetaSchema,
+  HealthResponseSchema,
+  HealthStatusSchema,
   QuizQuestionSchema,
   StudySessionSchema,
 } from "./api/schema";
@@ -20,3 +22,5 @@ export type StudySession = z.infer<typeof StudySessionSchema>;
 export type GenerationMeta = z.infer<typeof GenerationMetaSchema>;
 export type ApiError = z.infer<typeof ApiErrorSchema>;
 export type GenerateResponse = z.infer<typeof GenerateResponseSchema>;
+export type HealthStatus = z.infer<typeof HealthStatusSchema>;
+export type HealthResponse = z.infer<typeof HealthResponseSchema>;

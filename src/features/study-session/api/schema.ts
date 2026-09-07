@@ -80,6 +80,26 @@ export const ApiErrorSchema = z.object({
   message: z.string(),
 });
 
+/* ------------------------------------------------------------------ */
+/* Health                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `ok`        — key present and Groq answered
+ * `no_key`    — the server has no GROQ_API_KEY, so generation cannot work
+ * `unreachable` — key present but Groq did not answer (or rejected the key)
+ */
+export const HealthStatusSchema = z.enum(["ok", "no_key", "unreachable"]);
+
+export const HealthResponseSchema = z.object({
+  status: HealthStatusSchema,
+  model: z.string(),
+  /** Round-trip time of the upstream probe, in ms. Null when not probed. */
+  latencyMs: z.number().nullable(),
+  message: z.string(),
+  checkedAt: z.number(),
+});
+
 export const GenerateResponseSchema = z.discriminatedUnion("ok", [
   z.object({ ok: z.literal(true), data: StudySessionSchema, meta: GenerationMetaSchema }),
   z.object({ ok: z.literal(false), error: ApiErrorSchema }),
