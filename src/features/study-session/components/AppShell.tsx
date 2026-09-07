@@ -76,7 +76,15 @@ export function AppShell({
   }, [isDesktop, isDrawerOpen, onCloseDrawer]);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <div
+      className={cn(
+        "flex h-dvh overflow-hidden",
+        // The frosted panels need something worth blurring behind them, so the
+        // app sits on a gradient rather than one flat fill.
+        "bg-gradient-to-br from-white via-slate-50 to-slate-200",
+        "dark:from-slate-950 dark:via-slate-950 dark:to-slate-900",
+      )}
+    >
       {/* Scrim — drawer only. */}
       <div
         onClick={onCloseDrawer}
@@ -94,14 +102,23 @@ export function AppShell({
         // Hidden from assistive tech only while it is an off-screen drawer.
         aria-hidden={!isDesktop && !isDrawerOpen}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-xs flex-col border-r border-slate-200 shadow-xl",
-          "transition-transform duration-200 motion-reduce:transition-none dark:border-slate-800",
+          "fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-xs flex-col shadow-xl",
+          "border-r border-slate-200/80 dark:border-slate-800/80",
+          // The surface lives here, not on the sidebar's content, so the
+          // drawer's own header is frosted too rather than see-through.
+          "backdrop-blur-xl",
+          // Over arbitrary page content it stays nearly opaque: blur alone
+          // does not stop high-contrast text bleeding through. From `lg` it
+          // only covers the background gradient, where glass is safe.
+          "bg-slate-100/95 lg:bg-slate-100/70",
+          "dark:bg-slate-900/95 dark:lg:bg-slate-900/60",
+          "transition-transform duration-200 motion-reduce:transition-none",
           isDrawerOpen ? "translate-x-0" : "-translate-x-full",
           // From lg up it stops being a drawer entirely.
           "lg:static lg:z-auto lg:w-72 lg:max-w-none lg:translate-x-0 lg:shadow-none lg:transition-none",
         )}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-100 px-3 py-2 lg:hidden dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-3 py-2 lg:hidden dark:border-slate-800/80">
           <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Study Assistant
           </span>
@@ -120,7 +137,13 @@ export function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-2 border-b border-slate-200 bg-white px-3 py-2 lg:hidden dark:border-slate-800 dark:bg-slate-950">
+        <header
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 lg:hidden",
+            "border-b border-slate-200/80 bg-white/70 backdrop-blur-xl",
+            "dark:border-slate-800/80 dark:bg-slate-950/70",
+          )}
+        >
           <button
             ref={openerRef}
             type="button"

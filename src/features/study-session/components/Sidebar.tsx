@@ -23,7 +23,7 @@ export function Sidebar({
   onRemoveSession,
 }: SidebarProps) {
   return (
-    <div className="flex h-full flex-col bg-slate-100 dark:bg-slate-900">
+    <div className="flex h-full flex-col">
       <div className="p-3">
         <button
           type="button"
@@ -97,7 +97,7 @@ export function Sidebar({
         )}
       </nav>
 
-      <div className="flex items-center justify-between gap-2 border-t border-slate-200 p-3 dark:border-slate-800">
+      <div className="flex items-center justify-between gap-2 border-t border-slate-200/80 p-3 dark:border-slate-800/80">
         <div className="min-w-0"><ApiStatus /></div>
         <ThemeToggle />
       </div>
