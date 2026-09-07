@@ -204,7 +204,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). Click **Use sample text** if you want something to paste.
 
-**4. Try breaking it**
+**4. Try it with the demo inputs**
+
+Sample material is in [`demo/`](demo/) — each file exercises something different (clean prose, dense technical text, dates you can check for hallucination, an input that is deliberately too thin, and one that is too short to submit).
+
+**5. Try breaking it**
 
 With the dev server running, use the **Chaos mode** dropdown under the form to force each failure mode and watch the UI recover.
 
@@ -274,7 +278,7 @@ The script calls `tsc` and `next` by their resolved paths rather than through `n
 - **Input is capped at 12,000 characters** and truncation is the user's job. No PDF or file upload.
 - **English-centric prompt.** Other languages work but quality is untested.
 - **The connection indicator proves reachability, not capability.** It probes `models.list()`, which is free and consumes no token quota, so it confirms the key is valid and the network is open — but it cannot tell you that the *configured model* is available to your account, or that you have quota left. Those still surface as an error on generate. Probing with a real completion would be more honest and would cost tokens on every poll; I took the cheap check and documented the gap.
-- **No automated tests.** `normalize.ts` is the obvious first target — it's pure, and every branch corresponds to a real failure I've seen. Chaos mode covers the paths manually for now.
+- **No automated tests.** [`MANUAL-TEST.md`](MANUAL-TEST.md) is the checklist that stands in for them, with every case marked against what was actually observed. `normalize.ts` is the obvious first target — it's pure, and every branch corresponds to a real failure I've seen. Chaos mode covers the paths manually for now.
 - **The model can still be wrong.** Distractors are occasionally ambiguous and explanations occasionally restate the question. The app validates *shape*, not *truth*, which is why the footer says so.
 
 ---
