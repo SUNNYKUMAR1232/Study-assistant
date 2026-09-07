@@ -10,3 +10,4 @@ next-env.d.ts
 .claude/
 .vercel
 .env.bak
+.next-*
