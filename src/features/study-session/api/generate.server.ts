@@ -84,7 +84,13 @@ export async function generateStudySession(
  */
 function toApiError(error: unknown): ApiError {
   if (error instanceof Groq.APIError) {
-    console.error("[groq] %s %s — %s", error.status, error.name, JSON.stringify(error.error ?? error.message));
+    // `status` is undefined for connection-level failures (aborts, DNS).
+    console.error(
+      "[groq] %s %s — %s",
+      error.status ?? "no-status",
+      error.name,
+      JSON.stringify(error.error ?? error.message),
+    );
   } else if (!(error instanceof MissingKeyError)) {
     console.error("[groq] unexpected failure:", error);
   }
