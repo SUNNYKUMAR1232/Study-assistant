@@ -1,43 +1,47 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import { Button } from "@/shared/ui/Button";
 import { Card, CardBody } from "@/shared/ui/Card";
 import { cn } from "@/shared/lib/cn";
-import {
-  DIFFICULTIES,
-  MAX_INPUT_CHARS,
-  MIN_INPUT_CHARS,
-} from "../api/schema";
+import { DIFFICULTIES, MAX_INPUT_CHARS, MIN_INPUT_CHARS } from "../api/schema";
 import { CHAOS_MODES, type ChaosMode } from "../api/chaos";
-import type { Difficulty, GenerateRequestInput } from "../types";
+import type { ComposerDraft } from "../hooks/useComposerDraft";
+import type { Difficulty } from "../types";
 
 const SAMPLE = `Photosynthesis converts light energy into chemical energy stored in glucose. It happens in two stages. The light-dependent reactions occur in the thylakoid membranes, splitting water to release oxygen and producing ATP and NADPH. The Calvin cycle occurs in the stroma and uses that ATP and NADPH to fix carbon dioxide into glucose via the enzyme RuBisCO. The overall equation is 6CO2 + 6H2O + light -> C6H12O6 + 6O2.`;
 
+/**
+ * Fully controlled: the draft is owned by the workspace so it survives
+ * navigating away and back. This component renders and reports, nothing more.
+ */
 export interface InputPanelProps {
+  draft: ComposerDraft;
+  onChange: <K extends keyof ComposerDraft>(key: K, value: ComposerDraft[K]) => void;
   isLoading: boolean;
   showChaosControls: boolean;
-  onGenerate: (request: GenerateRequestInput, chaos: ChaosMode) => void;
+  onSubmit: () => void;
   onCancel: () => void;
 }
 
-export function InputPanel({ isLoading, showChaosControls, onGenerate, onCancel }: InputPanelProps) {
-  const [text, setText] = useState("");
-  const [flashcardCount, setFlashcardCount] = useState(8);
-  const [quizCount, setQuizCount] = useState(5);
-  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
-  const [chaos, setChaos] = useState<ChaosMode>("off");
-
+export function InputPanel({
+  draft,
+  onChange,
+  isLoading,
+  showChaosControls,
+  onSubmit,
+  onCancel,
+}: InputPanelProps) {
   const textareaId = useId();
-  const trimmed = text.trim();
+
+  const trimmed = draft.text.trim();
   const tooShort = trimmed.length > 0 && trimmed.length < MIN_INPUT_CHARS;
   const tooLong = trimmed.length > MAX_INPUT_CHARS;
   const canSubmit = trimmed.length >= MIN_INPUT_CHARS && !tooLong;
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!canSubmit) return;
-    onGenerate({ text: trimmed, flashcardCount, quizCount, difficulty }, chaos);
+    if (canSubmit) onSubmit();
   }
 
   return (
@@ -51,7 +55,7 @@ export function InputPanel({ isLoading, showChaosControls, onGenerate, onCancel 
               </label>
               <button
                 type="button"
-                onClick={() => setText(SAMPLE)}
+                onClick={() => onChange("text", SAMPLE)}
                 className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
               >
                 Use sample text
@@ -60,8 +64,8 @@ export function InputPanel({ isLoading, showChaosControls, onGenerate, onCancel 
 
             <textarea
               id={textareaId}
-              value={text}
-              onChange={(event) => setText(event.target.value)}
+              value={draft.text}
+              onChange={(event) => onChange("text", event.target.value)}
               // Ctrl/Cmd+Enter submits — the expected shortcut in a textarea.
               onKeyDown={(event) => {
                 if ((event.metaKey || event.ctrlKey) && event.key === "Enter") handleSubmit(event);
@@ -96,22 +100,34 @@ export function InputPanel({ isLoading, showChaosControls, onGenerate, onCancel 
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
-            <NumberField label="Flashcards" value={flashcardCount} min={3} max={20} onChange={setFlashcardCount} />
-            <NumberField label="Questions" value={quizCount} min={3} max={15} onChange={setQuizCount} />
+            <NumberField
+              label="Flashcards"
+              value={draft.flashcardCount}
+              min={3}
+              max={20}
+              onChange={(value) => onChange("flashcardCount", value)}
+            />
+            <NumberField
+              label="Questions"
+              value={draft.quizCount}
+              min={3}
+              max={15}
+              onChange={(value) => onChange("quizCount", value)}
+            />
             <SelectField
               label="Difficulty"
-              value={difficulty}
+              value={draft.difficulty}
               options={DIFFICULTIES}
-              onChange={(value) => setDifficulty(value as Difficulty)}
+              onChange={(value) => onChange("difficulty", value as Difficulty)}
             />
           </div>
 
           {showChaosControls ? (
             <SelectField
               label="Chaos mode (dev only)"
-              value={chaos}
+              value={draft.chaos}
               options={CHAOS_MODES}
-              onChange={(value) => setChaos(value as ChaosMode)}
+              onChange={(value) => onChange("chaos", value as ChaosMode)}
               hint="Force a specific model failure to see how the UI recovers."
             />
           ) : null}
