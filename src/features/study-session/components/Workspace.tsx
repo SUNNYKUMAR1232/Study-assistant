@@ -108,7 +108,9 @@ export function Workspace() {
         />
       }
     >
-      <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:py-8 lg:px-6 lg:py-12">
+      {/* Width is set per screen, not here: a form can use a wide column,
+          but a flashcard stretched to 1100px stops looking like a card. */}
+      <div className="w-full px-4 py-5 sm:py-8 lg:px-6 lg:py-10">
         {screen === "composer" ? (
           <ComposerScreen
             draft={composer.draft}
@@ -149,7 +151,7 @@ function ComposerScreen({
   onCancel: () => void;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-3xl space-y-5 xl:max-w-5xl 2xl:max-w-6xl">
       <div className="hidden lg:block">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           New study session
@@ -209,7 +211,7 @@ function SessionScreen({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-3xl space-y-4 xl:max-w-4xl">
       {/* Back is the only navigation here. Starting a new session is the
           sidebar's job, and having both invited the wrong one to be clicked. */}
       <BackButton onClick={onBack} />

@@ -115,7 +115,7 @@ export function AppShell({
           "transition-transform duration-200 motion-reduce:transition-none",
           isDrawerOpen ? "translate-x-0" : "-translate-x-full",
           // From lg up it stops being a drawer entirely.
-          "lg:static lg:z-auto lg:w-72 lg:max-w-none lg:translate-x-0 lg:shadow-none lg:transition-none",
+          "lg:static lg:z-auto lg:w-72 lg:max-w-none lg:translate-x-0 lg:shadow-none lg:transition-none 2xl:w-80",
         )}
       >
         <div className="flex items-center justify-between border-b border-slate-200/80 px-3 py-2 lg:hidden dark:border-slate-800/80">
