@@ -200,7 +200,11 @@ Read from `process.env.GROQ_API_KEY` in `generate.server.ts` only. That module i
 
 **Decisions worth defending:**
 
-1. **Sessions save themselves.** A history list the user has to remember to populate stays empty. Every successful generation is persisted and the user curates by deleting. `record()` de-duplicates by content fingerprint, so re-opening a stored session does not clone it.
+1. **Sessions save themselves.** A history list the user has to remember to populate stays empty. Every successful generation is persisted and the user curates by deleting.
+
+   **The bug this created, which is worth telling.** Auto-save was driven by an effect watching `status === "success"`. But re-opening a stored session *also* resolves to success, so browsing history silently re-recorded each session — moving it to the top and reshuffling the list on every click. A content fingerprint stopped duplicates but not the reordering, because alternating between two sessions alternates the fingerprint.
+
+   The fix was to make the distinction explicit in the state rather than infer it: `loadSession` sets a `restored` flag, and the effect skips recording when it is set. **"Success" was overloaded — it meant both "we produced this" and "we read this back", and only one of those should write to storage.**
 2. **The sidebar is mounted once and repositioned with CSS** (`fixed` → `lg:static`). I first rendered it twice — a desktop copy and a drawer copy — and **testing caught it**: the history list showed four entries for two sessions, and, worse, two `useApiHealth` hooks were running two polling loops and doubling the health requests. Duplicating a subtree duplicates its effects.
 3. **The breakpoint is tracked in JS as well as CSS** (`matchMedia`). Modal semantics — `role="dialog"`, `aria-modal`, focus capture, scroll lock, Escape — belong to the drawer, not to the desktop rail. CSS alone cannot express that, and a rail permanently announcing itself as a modal dialog is worse than no dialog at all.
 4. **Back preserves the draft; New session clears it.** Two different intentions deserve two different controls. Making that work meant lifting the draft out of `InputPanel` into `useComposerDraft` — component-local state dies on unmount, which would turn "back" into "discard".
