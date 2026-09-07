@@ -254,19 +254,18 @@ The script calls `tsc` and `next` by their resolved paths rather than through `n
 
 ---
 
-## 4. AI usage note
+## 4. Architecture details
 
-**In the product.** The only model call is a single Groq chat completion in `generate.server.ts`, using `openai/gpt-oss-120b` with forced tool calling. The prompt instructs the model to use *only* facts present in the pasted material and to return fewer items rather than pad. There is no streaming, no second call, and no agentic loop — one request, one structured result.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the architecture, design patterns, layer boundaries, and trade-offs.
 
-**In building it.** I used Claude (via Claude Code) as a pair-programming assistant: scaffolding, drafting the Tailwind class strings, and pushing back on my own architecture choices. Everything it produced I read, edited, and can defend line by line — the normalisation strategy, the stale-response guard, and the decision to skip React Query are mine, and `ARCHITECTURE.md` records the reasoning for each. Where I disagreed with a suggestion (adding React Query, inventing extra feature folders), I didn't take it.
+## 5. AI usage
 
----
+AI was used as a development assistant for code generation, bug fixing, and researching alternative implementation approaches. I reviewed and tested the generated suggestions, made the final implementation decisions, and remain responsible for the architecture, design choices, and behavior of the application.
 
-## 6. Time spent
+## 6. Completion time
 
-**About 2 hours of active work**, across a 2h 37m wall-clock window (first commit 07:59, last 10:36). These figures come from the commit timestamps rather than memory — `git log` will confirm them.
-
+Total time taken: approximately **2 hours 37 minutes**.
 
 ## Thanks
 
-Thanks for reading this far, and thanks for an assignment that asked about failure handling instead of another CRUD list — it's a much better question, and it made for a genuinely interesting build.
+Thanks for taking the time to review this project.
