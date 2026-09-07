@@ -169,6 +169,27 @@ Read from `process.env.GROQ_API_KEY` in `generate.server.ts` only. That module i
 
 ---
 
+## 8b. The deploy script
+
+`npm run deploy` → `scripts/deploy.mjs`. Worth a minute if they ask about shipping.
+
+**The ordering principle:** every check that can fail locally runs *before* anything is pushed to a third party. Prereqs → typecheck → build → confirm → upload secrets → deploy → smoke-test. A broken build never reaches a real URL, and I never upload a key for a deploy that was going to fail anyway.
+
+**Details I'd point at:**
+
+- **Secrets go over stdin, not argv.** `vercel env add` reads the value from the child process's stdin. Passing it as an argument would put the key in the shell history and in the process table.
+- **The key is never printed** — only its length and last four characters, which is enough to confirm *which* key without leaking it.
+- **`env rm` before `env add`.** Vercel rejects a duplicate, so rotating a key would otherwise fail on the second deploy. Removing first makes the operation idempotent; a missing variable makes the `rm` a harmless no-op.
+- **It smoke-tests the deployment.** It hits the live `/api/health` and exits non-zero if the deployed server can't reach Groq. A URL coming back is not the same as the thing working — this is the same instinct as the health indicator itself (§7b).
+- **`--dry-run`** runs every local check and touches nothing remote, so the script is safe to run at any time.
+- **`shell: true` is opt-in, per command.** A shell doesn't escape arguments, so a project path containing a space — like `D:\Project\Study assistant` — gets split in two. Node binaries are spawned directly; only `npx` (a `.cmd` shim on Windows) gets a shell. **I hit this bug in testing**, which is the honest reason I know about it.
+- **Local tools are invoked by resolved path**, not via `npm run`, so the script survives a broken npm shim.
+
+**If they ask "why not just `git push` and let Vercel's GitHub integration build it?"**
+> For a team, that's the right answer — CI should own deploys. This is a single-developer take-home with no CI, and I wanted the failure modes visible in one place: the local build, the secret sync, and a real post-deploy health assertion. The script is also self-documenting for whoever runs it next.
+
+---
+
 ## 9. Mobile & accessibility specifics
 
 - Designed at 375px first; the layout is a single column that gains breathing room, not a desktop layout squeezed down.

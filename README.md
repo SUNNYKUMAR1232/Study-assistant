@@ -105,6 +105,9 @@ src/
   shared/
     ui/                             ← Button, Card, ProgressBar, loading/empty/error
     lib/                            ← cn, fetchWithTimeout, hashText, storage
+
+scripts/
+  deploy.mjs                        ← one-command deploy: verify → build → ship → smoke-test
 ```
 
 ### Why this structure
@@ -208,6 +211,35 @@ npm run start      # serve the production build
 npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
 ```
+
+### Deploying
+
+One command, to Vercel:
+
+```bash
+npm run deploy
+```
+
+It runs in a deliberate order — **everything that can fail locally fails before anything is pushed anywhere**:
+
+1. Checks Node version, installed dependencies, and that `GROQ_API_KEY` is set (it prints the length and last four characters, never the key).
+2. Typechecks and runs a full production build. A broken build never reaches a URL.
+3. Asks you to confirm, naming what it is about to upload.
+4. Syncs `GROQ_API_KEY` and `GROQ_MODEL` to Vercel as **server-side** environment variables, passed over stdin rather than as command-line arguments so they never land in your shell history. Existing values are replaced, so rotating a key is just a re-deploy.
+5. Deploys, then **smoke-tests the live `/api/health` endpoint** and reports the real Groq latency. A deploy that returns a URL but cannot reach Groq exits non-zero rather than claiming success.
+
+Variants:
+
+```bash
+npm run deploy:check     # every local check, nothing remote — safe to run anytime
+npm run deploy:preview   # preview deploy instead of production
+node scripts/deploy.mjs --yes            # non-interactive, for CI
+node scripts/deploy.mjs --skip-checks    # skip typecheck/build
+```
+
+The script calls `tsc` and `next` by their resolved paths rather than through `npm run`, so it also works on machines where the npm shim itself is broken.
+
+> **First run:** the Vercel CLI will ask you to log in and link the project. That's a one-off; afterwards `npm run deploy` is genuinely one command.
 
 ### Optional configuration
 
